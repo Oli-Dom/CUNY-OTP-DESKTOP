@@ -4,7 +4,7 @@ Rather than using your phone simply paste your secret key from the auth app into
 -------ADDING THE EXTENSION TO CHROME -----------
 
 1. Go to chrome://extensions → enable Developer mode
-2. Click Load unpacked → select the otp-extension folder (unzipped)
+2. Click Load unpacked → select the otp-extension folder (unzipped) (might have to go 2 levels deep)
 3. Pin in
    
 ------- ADDING YOUR SECRET FOR OTP GENERATION -----------
