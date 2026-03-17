@@ -1,7 +1,7 @@
 # CUNY-OTP-DESKTOP
 Rather than using your phone simply paste your secret key from the auth app into the extension. Codes will be generated as same as the auth app does.
 
--------ADDING THE EXTENSION TO CHROME -----------
+-------ADDING THE EXTENSION TO CHROME (Im not paying the $5 fee to host it) -----------
 
 1. Go to chrome://extensions → enable Developer mode
 2. Click Load unpacked → select the otp-extension folder (unzipped) (might have to go 2 levels deep)
