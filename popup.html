@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OTP Generator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #0a0c10;
+      --surface: #111318;
+      --border:  #1e2330;
+      --accent:  #00e5ff;
+      --accent2: #7b61ff;
+      --danger:  #ff4d6d;
+      --text:    #e8eaf0;
+      --muted:   #5a6070;
+    }
+    body {
+      width: 320px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    .header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      width: 26px; height: 26px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: monospace; font-size: 11px; font-weight: bold; color: #000;
+    }
+    .header-title {
+      font-size: 11px; font-weight: 600; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .gear {
+      margin-left: auto; cursor: pointer; color: var(--muted);
+      font-size: 17px; padding: 2px 4px; user-select: none;
+    }
+    .gear:hover { color: var(--accent); }
+
+    .view { padding: 16px; display: none; }
+    .view.active { display: block; }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px 16px 14px; margin-bottom: 12px;
+    }
+    .card-label {
+      font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 8px;
+    }
+    .otp-code {
+      font-family: 'Courier New', monospace; font-size: 34px;
+      letter-spacing: .2em; color: var(--accent); line-height: 1;
+    }
+    .progress-row {
+      margin-top: 12px; display: flex; align-items: center; gap: 8px;
+    }
+    .track { flex: 1; height: 3px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .fill  { height: 100%; background: var(--accent); border-radius: 99px; transition: background .3s; }
+    .fill.low { background: var(--danger); }
+    .timer { font-family: monospace; font-size: 11px; color: var(--muted); min-width: 26px; text-align: right; }
+    .timer.low { color: var(--danger); }
+
+    .btn {
+      width: 100%; padding: 10px; border: none; border-radius: 7px;
+      font-size: 12px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; cursor: pointer; transition: opacity .15s;
+    }
+    .btn:hover { opacity: .85; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #000; }
+    .btn-primary.copied { background: transparent; color: #4cff91; border: 1px solid #4cff91; }
+    .btn-secondary { background: var(--accent2); color: #fff; }
+    .btn-ghost {
+      background: transparent; color: var(--muted); border: 1px solid var(--border);
+      margin-top: 8px; font-weight: 400;
+    }
+
+    .no-key-msg { text-align: center; padding: 6px 0 14px; }
+    .no-key-msg p { font-size: 12px; color: var(--muted); margin-bottom: 14px; line-height: 1.6; }
+
+    .setup-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 14px; }
+    .field-label { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+    .field-input {
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 9px 11px; color: var(--text);
+      font-family: monospace; font-size: 13px; outline: none; margin-bottom: 12px;
+      transition: border-color .2s;
+    }
+    .field-input:focus { border-color: var(--accent); }
+    .field-input::placeholder { color: var(--muted); opacity: .6; }
+    .err { font-size: 11px; color: var(--danger); margin-bottom: 10px; display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">OTP</div>
+    <span class="header-title">Authenticator</span>
+    <span class="gear" id="gearBtn">&#9881;</span>
+  </div>
+
+  <div class="view" id="view-ready">
+    <div class="card">
+      <div class="card-label">Current Code</div>
+      <div class="otp-code" id="otpDisplay">--- ---</div>
+      <div class="progress-row">
+        <div class="track"><div class="fill" id="fillBar" style="width:100%"></div></div>
+        <span class="timer" id="timerText">30s</span>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="copyBtn">Copy Code</button>
+  </div>
+
+  <div class="view" id="view-nokey">
+    <div class="no-key-msg">
+      <p>No secret key configured.<br>Add your Base32 TOTP secret to get started.</p>
+      <button class="btn btn-primary" id="addKeyBtn">Add Secret Key</button>
+    </div>
+  </div>
+
+  <div class="view" id="view-setup">
+    <div class="setup-title">Configure Secret Key</div>
+    <div class="field-label">Base32 Secret Key</div>
+    <input class="field-input" id="secretInput" type="password"
+      placeholder="JBSWY3DPEHPK3PXP" autocomplete="off" spellcheck="false" />
+    <div class="err" id="errMsg"></div>
+    <button class="btn btn-secondary" id="saveBtn">Save &amp; Activate</button>
+    <button class="btn btn-ghost" id="backBtn">&#8592; Cancel</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
